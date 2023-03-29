@@ -22,8 +22,16 @@ What we are doing is injecting into an SQL query (or attempting to)!
 Entering a input like "admin" "password" in the username and password fields respectively results in this
 
 ![image](https://user-images.githubusercontent.com/98354876/228392874-8d5e4462-09cb-4b57-ac4c-b85c50d88deb.png)
-
+# Exploitation
 This is vulnerable to SQLI, it is directly putting our username input and password input into the SQL query, meaning we can control the query to an extent!
 But.. How? Well thats where the SQLI payload from above comes in handy!
 
-Notice how there are single quotes around our user input in the screenshot above? Well if our input is being directly put in there.. we need to escape those single quotes. Thats where our first part of our SQLI payload comes from, we put a single quote to escape the query. Now we need to make sure that the "password" parameter results in true, even if its never matching a valid password! Thats where the "or 1=1" part of the payload comes in. We are basically saying to the server "Ok, find me a password that is empty (Due to us closing the single quote) OR does 1=1?" And because theres no password that is blank, it checks our OR statement and sees that 1 does in fact equal 1! So it sets the password check to TRUE. But remember, we need to 
+Notice how there are single quotes around our user input in the screenshot above? Well if our input is being directly put in there.. we need to escape those single quotes. 
+Thats where our first part of our SQLI payload comes from, we put a single quote to escape the query. Now we need to make sure that the "password" parameter results in true, even if its never matching a valid password! 
+Thats where the "or 1=1" part of the payload comes in. We are basically saying to the server "Ok, find me a password that is empty (Due to us closing the single quote) OR does 1=1?" 
+And because theres no password that is blank, it checks our OR statement and sees that 1 does in fact equal 1! So it sets the password check to TRUE. But remember, we need to make the username check true as well
+Or.. We can just ignore it! Thats what the final part of the query is doing, the characters "-- -" is actually a comment in the SQL language! If you check the query above, we can see the password check comes before the username check.
+This means we can enter 'or 1=1 to bypass the password check, and add "-- -" to comment out the username check so its never ran in the first place! This is especially useful for when there is a part of the query we cant control, that check would likely fail, but if we can comment out the rest of the query, it doesnt matter whats after our user controlled input!
+
+Now.. Lets run this payload!
+
